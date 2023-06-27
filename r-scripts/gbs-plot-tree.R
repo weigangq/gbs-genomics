@@ -1,4 +1,5 @@
 setwd("C:/Users/weiga/Dropbox/QiuDi/GBS-Wu/")
+setwd("Dropbox/gbs-genomics/")
 #library(ape)
 #library(genoPlotR)
 library(tidyverse)
@@ -6,14 +7,14 @@ library(tidyverse)
 #####################
 # 5/12/2023, n=256 isolates
 #####################
-
+#BiocManager::install("ggtree")
 library(ggtree)
 library(readxl)
 #tree <- treeio::read.tree("contree-257.dnd4")
-tree <- treeio::read.tree("contree-v2.dnd")
+tree <- treeio::read.tree("data/contree-v2.dnd")
 ggtree(tree, layout = "fan")  +  geom_treescale() 
 
-dd <- read_xlsx("gbs-pheno.xlsx", col_types = "text")
+dd <- read_xlsx("data/gbs-pheno.xlsx", col_types = "text")
 tips <- tibble(id=tree$tip.label)
 tips <- tips %>% left_join(dd, c("id" = "node")) # direct reading didn't work
 col <- c("green", "red", "blue")
