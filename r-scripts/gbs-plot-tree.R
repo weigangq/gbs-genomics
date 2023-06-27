@@ -12,7 +12,10 @@ library(ggtree)
 library(readxl)
 #tree <- treeio::read.tree("contree-257.dnd4")
 tree <- treeio::read.tree("data/contree-v2.dnd")
-ggtree(tree, layout = "fan")  +  geom_treescale() 
+
+tree <- treeio::read.tree("data/per_branch.labelled_tree.newick")
+plot(tree, show.tip.label = F)
+ggtree(tree)  +  geom_treescale() 
 
 dd <- read_xlsx("data/gbs-pheno.xlsx", col_types = "text")
 tips <- tibble(id=tree$tip.label)
