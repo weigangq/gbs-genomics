@@ -1,0 +1,37 @@
+
+VCFtools - 0.1.16
+(C) Adam Auton and Anthony Marcketta 2009
+
+Parameters as interpreted:
+	--gzvcf snps2.vcf.gz
+	--weir-fst-pop pop_0.tsv
+	--weir-fst-pop pop_1.tsv
+	--weir-fst-pop pop_2.tsv
+	--weir-fst-pop pop_3.tsv
+	--weir-fst-pop pop_4.tsv
+	--weir-fst-pop pop_5.tsv
+	--weir-fst-pop pop_6.tsv
+	--weir-fst-pop pop_7.tsv
+	--keep pop_0.tsv
+	--keep pop_1.tsv
+	--keep pop_2.tsv
+	--keep pop_3.tsv
+	--keep pop_4.tsv
+	--keep pop_5.tsv
+	--keep pop_6.tsv
+	--keep pop_7.tsv
+	--out snps2
+
+Using zlib version: 1.2.11
+Warning: Expected at least 2 parts in INFO entry: ID=AC,Number=A,Type=Integer,Description="Allele count in genotypes for each ALT allele, in the same order as listed">
+Warning: Expected at least 2 parts in INFO entry: ID=DP4,Number=4,Type=Integer,Description="Number of high-quality ref-forward , ref-reverse, alt-forward and alt-reverse bases">
+Warning: Expected at least 2 parts in INFO entry: ID=DP4,Number=4,Type=Integer,Description="Number of high-quality ref-forward , ref-reverse, alt-forward and alt-reverse bases">
+Warning: Expected at least 2 parts in INFO entry: ID=PV4,Number=4,Type=Float,Description="P-values for strand bias, baseQ bias, mapQ bias and tail distance bias">
+Warning: Expected at least 2 parts in INFO entry: ID=PV4,Number=4,Type=Float,Description="P-values for strand bias, baseQ bias, mapQ bias and tail distance bias">
+Keeping individuals in 'keep' list
+After filtering, kept 255 out of 255 Individuals
+Outputting Weir and Cockerham Fst estimates.
+Weir and Cockerham mean Fst estimate: 0.75535
+Weir and Cockerham weighted Fst estimate: 0.84099
+After filtering, kept 44618 out of a possible 44618 Sites
+Run Time = 2.00 seconds
