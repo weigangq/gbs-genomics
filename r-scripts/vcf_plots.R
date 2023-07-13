@@ -3,32 +3,37 @@
 library(ggplot2)
 library(tidyverse)
 library(dplyr)
+library(reshape2)
 
 setwd('/Users/brandonely/Desktop/gbs-genomics/data')
 
-#read vcftools outputs
-pi.site <- read.table('snps2.sites.pi', header = T)
+##### snp frequency across 10K windows of genome #####
+
+#read data
 pi.windows <- read.table('snps2_10k.windowed.pi', header = T)
-taj <- read.table('snps2_10k.Tajima.D', header = T)
-tstv <- read.table('snps2.tstv.summary', header = T)
 
-
-### snp frequency across 10K windows of genome ###
+#plot
 pi.windows %>%
   ggplot(aes(x = BIN_START, y = N_VARIANTS)) +
-  geom_bar(stat = 'identity',color = 'red3') +
+  geom_line(color = 'red3') +
   #formating
   theme_classic() +
   theme(title = element_text(size = 12), axis.text=element_text(size=12), axis.title=element_text(size=12), panel.border = element_rect(color = "black",fill = NA, linewidth = 1)) +
   labs(title = 'SNP Frequency', subtitle = '10K sliding windows',x = 'Genome Position', y = '# of SNPs')  
 
 
-### ts/tv counts ###
-tstv_2 <- tstv[1:6, ]
-tstv_2 <- tstv_2 %>% mutate(type = if_else(MODEL == 'AG' | MODEL == 'CT', 'Transition', 'Transversion'))
-tstv_2$MODEL <- factor(tstv_2$MODEL, levels = c("AG", "CT", "AT", "AC", "GT", "CG"))
+##### ts/tv counts #####
 
-tstv_2 %>%
+#read data and prepare dataframe
+tstv <- read.table('snps2.tstv.summary', header = T)
+tstv <- tstv[1:6, ]
+tstv <- tstv %>% mutate(type = if_else(MODEL == 'AG' | MODEL == 'CT', 'Transition', 'Transversion'))
+
+#order the bars for barplot
+tstv$MODEL <- factor(tstv$MODEL, levels = c("AG", "CT", "AT", "AC", "GT", "CG"))
+
+#plot
+tstv %>%
   ggplot(aes(x = MODEL, y = COUNT, fill = type)) +
   geom_bar(stat = 'identity') +
   #formating
@@ -38,10 +43,12 @@ tstv_2 %>%
   labs(title = 'SNP Transition/Transversion',x = '', y = 'Count', fill = '')  
 
 
-### plots for nucleotide diversity ###
-hist(pi.windows$PI, br = 20)
-boxplot(pi.windows$PI,ylab="diversity")
+##### nucleotide diversity #####
 
+#plot histogram
+hist(pi.windows$PI, br = 20)
+
+#plot line graph
 pi.windows %>%
   ggplot(aes(x = BIN_START, y = PI)) +
   geom_line(color = 'steelblue') +
@@ -51,16 +58,57 @@ pi.windows %>%
   labs(title = 'SNP Nucleotide Diversity', subtitle = '10K sliding windows',x = 'Genome Position', y = 'Diveristy (Pi)')
 
 
-### plots for tajima's D ###
+##### plots for tajima's D #####
+
+#read data
+taj <- read.table('snps2_10k.Tajima.D', header = T)
+
+#plot histogram
 hist(taj$TajimaD,br=20)
 
+#plot line graph
 taj %>%
   ggplot(aes(x = BIN_START, y = TajimaD)) +
-  geom_line(color = 'purple4') +
+  geom_line(color = 'green4') +
   #formating
   theme_classic() +
   theme(title = element_text(size = 12), axis.text=element_text(size=12), axis.title=element_text(size=12), panel.border = element_rect(color = "black",fill = NA, linewidth = 1)) +
   labs(title = 'Tajima D', subtitle = '10K sliding windows',x = 'Genome Position', y = 'TajimaD')
 
 
+##### pi and tajima D on same plot #####
 
+#merge pi and tajima data
+pi2 <- pi.windows %>% select(2,5)
+taj2 <- taj %>% select(2,4)
+taj2$BIN_START <- taj2$BIN_START + 1
+df <- merge(x = pi2, y = taj2, by = 'BIN_START', all = T)
+df2 <- melt(df, id.var="BIN_START")
+
+#plot
+ggplot(df2, aes(x = BIN_START, y = value)) + geom_line(aes(color = variable)) +
+  labs(title = 'GBS snp analysis', subtitle = '10k sliding windows' ,x = 'genome position') +
+  facet_grid(variable ~ ., scales = "free_y") + theme(legend.position = "none")
+
+
+##### fst analysis #####
+
+#read data
+cut0.win <- read.table('cut_0.windowed.weir.fst', header = T) %>%
+  mutate('population' = 'cut_0')
+cut1.win <- read.table('cut_1.windowed.weir.fst', header = T) %>%
+  mutate('population' = 'cut_1')
+cut2.win <- read.table('cut_2.windowed.weir.fst', header = T) %>%
+  mutate('population' = 'cut_2')
+cut3.win <- read.table('cut_3.windowed.weir.fst', header = T) %>%
+  mutate('population' = 'cut_3')
+
+#combine dataframes 
+fst <- do.call("rbind", list(cut0.win, cut1.win, cut2.win, cut3.win))
+fst <- fst %>% select(2,5,6,7)
+
+#plot
+fst %>%
+  ggplot(aes(x = BIN_START, y = WEIGHTED_FST, color = population)) +
+  geom_line()
+  #facet_grid(rows = vars(population))
