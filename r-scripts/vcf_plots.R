@@ -76,21 +76,6 @@ taj %>%
   labs(title = 'Tajima D', subtitle = '10K sliding windows',x = 'Genome Position', y = 'TajimaD')
 
 
-##### pi and tajima D on same plot #####
-
-#merge pi and tajima data
-pi2 <- pi.windows %>% select(2,5)
-taj2 <- taj %>% select(2,4)
-taj2$BIN_START <- taj2$BIN_START + 1
-df <- merge(x = pi2, y = taj2, by = 'BIN_START', all = T)
-df2 <- melt(df, id.var="BIN_START")
-
-#plot
-ggplot(df2, aes(x = BIN_START, y = value)) + geom_line(aes(color = variable)) +
-  labs(title = 'GBS snp analysis', subtitle = '10k sliding windows' ,x = 'genome position') +
-  facet_grid(variable ~ ., scales = "free_y") + theme(legend.position = "none")
-
-
 ##### fst analysis #####
 
 #read data
@@ -110,5 +95,47 @@ fst <- fst %>% select(2,5,6,7)
 #plot
 fst %>%
   ggplot(aes(x = BIN_START, y = WEIGHTED_FST, color = population)) +
-  geom_line()
-  #facet_grid(rows = vars(population))
+  geom_hline(yintercept = 0) +
+  geom_line() + 
+  facet_grid(rows = vars(population))
+
+
+##### pi, tajima D, fst on same plot #####
+
+#merge data
+pi2 <- pi.windows %>% select(2,5)
+taj2 <- taj %>% select(2,4)
+taj2$BIN_START <- taj2$BIN_START + 1
+cut1.fst2 <- cut1.win %>% select(2,5)
+
+df_list <- list(pi2, taj2, cut1.fst2)
+df <- df_list %>% reduce(full_join, by='BIN_START')
+df2 <- melt(df, id.var="BIN_START")
+
+#plot
+ggplot(df2, aes(x = BIN_START, y = value)) + geom_line(aes(color = variable)) +
+  labs(title = 'GBS snp analysis', subtitle = '10k sliding windows' ,x = 'genome position') +
+  facet_grid(variable ~ ., scales = "free_y") + theme(legend.position = "none")
+
+##### within group pi analysis #####
+
+#read data
+cut0_pi.win <- read.table('cut_0.windowed.pi', header = T) %>%
+  mutate('population' = 'cut_0')
+cut1_pi.win <- read.table('cut_1.windowed.pi', header = T) %>%
+  mutate('population' = 'cut_1')
+cut2_pi.win <- read.table('cut_2.windowed.pi', header = T) %>%
+  mutate('population' = 'cut_2')
+cut3_pi.win <- read.table('cut_3.windowed.pi', header = T) %>%
+  mutate('population' = 'cut_3')
+
+#combine data
+pop_pi.win <- do.call("rbind", list(cut0_pi.win, cut1_pi.win, cut2_pi.win, cut3_pi.win))
+pop_pi.win <- pop_pi.win %>% select(2,5,6)
+
+#plot
+pop_pi.win %>%
+  ggplot(aes(x = BIN_START, y = PI, color = population)) +
+  geom_line() + 
+  facet_grid(rows = vars(population))
+
