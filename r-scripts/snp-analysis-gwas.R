@@ -1,6 +1,8 @@
 # gbs GWAS analysis with SNPs
 library(tidyverse)
 library(readxl)
+library(ggtree)
+library(ggrepel)
 setwd("/Users/weiga/Dropbox/gbs-genomics/")
 
 # read pheno
@@ -67,24 +69,23 @@ bad_pos <- snp_ct %>% group_by(POS) %>% count() %>% filter(n < 4)
 
 library(broom)
 
-# batch fisher's exact test
+# Caution: batch fisher's exact test; # takes ~10 min
 snp_fisher <- x %>% 
   filter(!POS %in% bad_pos$POS) %>%   
   group_by(POS) %>%   
   do(tidy(xtabs(~ nt + virulence, data = .) %>% 
             fisher.test(simulate.p.value = T)))
 
-# takes ~10 min
 y <- snp_fisher %>% left_join(csq.distinct, "POS")
-
 y <- y %>% mutate(log.p = -log10(p.value))
 y <- y %>% left_join(df.ci, "POS")
 y <- y %>% mutate(homoplasy = if_else(ci <= 0.25, "0-Hi-hmp",
                                       if_else(ci < 1, "1-Med-hmp", "2-Consistent"))
                   )
 #save(y, file = "RData-saved/snps-y.RData")
-# load("data/snps.RData")
 # save(x, file = "RData-saved/snps-long.RData")
+load("RData-saved/snps-long.RData")
+load("RData-saved/snps-y.RData")
 
 # plot vocano
 y %>% filter(mut.type %in% c("missense", "synonymous")) %>% 
@@ -275,9 +276,10 @@ y <- y %>% left_join(pg.df, c("POS" = "pos"))
 y <- y %>% mutate(log.p.lmm = -log10(Bpval))
 y <- y %>% mutate(mut.type = if_else(is.na(mut.type), "igs", mut.type))
 #save(y, file = "RData-saved/snps-pglmm.RData")
+load("RData-saved/snps-pglmm.RData") # get ""y"
 
 # Plot 1. p val comparisons
-library(ggrepel)
+
 y.sig <- y %>% filter(mut.type %in% c('missense', 'synonymous', 'igs')) %>%
   filter(log.p.lmm > 3)
 
@@ -328,7 +330,10 @@ y %>% filter(mut.type %in% c("missense", "synonymous", "igs")) %>%
   facet_grid(rows =  vars(mut.type), cols =  vars(homoplasy)) + 
   theme(legend.position = "none")
 
+write_tsv(y, file = "data/gbs-pglmm.tsv")
+
 ###################
+# heatmap validation
 
 pg.df <- pg.df %>% arrange(Bpval)
 pg.df <- pg.df %>% left_join(y, c("pos" = "POS"))

@@ -1,5 +1,5 @@
-setwd("C:/Users/weiga/Dropbox/QiuDi/GBS-Wu/")
-setwd("Dropbox/gbs-genomics/")
+setwd("C:/Users/weiga/Dropbox/gbs-genomics/")
+#setwd("Dropbox/gbs-genomics/")
 #library(ape)
 #library(genoPlotR)
 library(tidyverse)
