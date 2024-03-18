@@ -11,8 +11,40 @@ library(ape)
 library(phangorn)
 library(broom)
 
-setwd("/Users/weiga/Dropbox/gbs-genomics/")
+#setwd("/Users/weiga/Dropbox/gbs-genomics/")
+setwd("/mnt/c/Users/weiga/Dropbox/gbs-genomics/")
 
+#################
+# make illustrations
+# Simulate SNPs on a tree
+tr <- rtree(10)
+tr$tip.label <- sprintf("T%02d", str_remove(tr$tip.label, 't') %>% as.integer())
+X <- replicate(10, rTraitDisc(tr, states = c(0,1), rate = 100, model = "ER"))
+x.df <- as.data.frame(X) %>% 
+  mutate(before = paste(V1, V2, V3, V4, V5, V6), 
+         after = paste(V8, V9, V10))
+plot(tr, no.margin = T, x.lim = 5, show.tip.label = F, edge.width = 3)
+text(rep(1.75,10), 1:10, tr$tip.label, pos = 4, col = sample(1:2, 10, replace = T))
+text(rep(2.5,10), 1:10, x.df[tr$tip.label,'before'], pos=4)
+text(rep(2.9,10), 1:10, x.df[tr$tip.label,'V7'], pos=4, col = 2)
+text(rep(3,10), 1:10, x.df[tr$tip.label,'after'], pos=4)
+
+# calculate CI for verification
+cal.ci <- function(x, tree) {
+  #x: tree-simulated SNPs
+  my_data <- phyDat(x, type = "USER", levels = c('0','1'))
+  ci <- CI(tree, my_data, sitewise = T)
+  df.ci <- tibble(POS = colnames(x), ci = ci)
+  return(df.ci)
+}
+
+df.ci <- cal.ci(X, tr)
+  
+df.ci %>% filter(!is.na(ci)) %>%
+  ggplot(aes(x = POS, y = ci)) +
+  geom_col() +
+  theme_bw() +
+  coord_flip()
 ##########
 # Model 0. neutral tree
 # simulate neutral tree, 100 OTUs
